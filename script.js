@@ -26,10 +26,10 @@ const responses = {
         "recomiéndame una cerveza": "Si buscas algo tradicional, te recomiendo una Pilsener o una Brahma. Si quieres algo más fuerte, prueba una Club Verde. ¿Cuál prefieres?",
         "tienes cervezas artesanales": "Sí, contamos con una selección de cervezas artesanales como IPA, Porter y Stout. ¿Te gustaría probar alguna de estas?",
     },
-    guanchaca: {
-        "qué es la guanchaca": "La guanchaca es un trago fuerte y tradicional, similar al aguardiente, pero más casero. Ideal para una buena fiesta. ¿Te gustaría una recomendación?",
-        "recomiéndame una guanchaca": "¡Claro! Te recomiendo la guanchaca de Montecristi o la tradicional de Manabí. Son fuertes pero con buen sabor. ¿Te animas a probar una?",
-        "es buena la guanchaca": "Es excelente si sabes disfrutarla. Eso sí, ¡con moderación! Es ideal para reuniones con amigos o para darle un toque especial a tus tragos.",
+    puro: {
+        "qué es el puro de balsapamba": "El puro de Balsapamba es un aguardiente típico de la región, conocido por su sabor fuerte y auténtico. Es ideal para compartir en reuniones o celebraciones especiales. ¿Te gustaría probarlo?",
+        "recomiéndame un puro": "Sin duda, el puro de Balsapamba es una excelente elección. Tiene un sabor intenso y es perfecto para quienes disfrutan de bebidas tradicionales. ¿Te interesa?",
+        "es bueno el puro de balsapamba": "Es muy bueno si te gustan los sabores fuertes y auténticos. Eso sí, ¡tómalo con moderación! Es una bebida para disfrutar despacio.",
     },
     vinos: {
         "qué vinos tienes": "Tenemos una selección de vinos económicos como el famoso Vino del Tuti, y otros más sofisticados como Merlot y Malbec. ¿Te interesa alguno en particular?",
@@ -55,9 +55,9 @@ function getResponse(userInput) {
         context = "cervezas";
         return responses.cervezas["qué cervezas tienes"];
     }
-    if (normalizedInput.includes("guanchaca")) {
-        context = "guanchaca";
-        return responses.guanchaca["qué es la guanchaca"];
+    if (normalizedInput.includes("puro") || normalizedInput.includes("balsapamba")) {
+        context = "puro";
+        return responses.puro["qué es el puro de balsapamba"];
     }
     if (normalizedInput.includes("vino")) {
         context = "vinos";
