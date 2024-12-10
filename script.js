@@ -7,37 +7,70 @@ function addMessage(content, sender) {
     message.className = `message ${sender}`;
     message.textContent = content;
     chatMessages.appendChild(message);
+    chatMessages.scrollTop = chatMessages.scrollHeight; // Desplazarse hacia abajo automáticamente
 }
 
 // Inicializar la API de reconocimiento de voz
 const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
 recognition.lang = "es-ES"; // Configurar el idioma a español
 
-// Respuestas predefinidas (entrenamiento manual)
+// Respuestas predefinidas con contextos específicos
 const responses = {
-    "hola": "¡Hola! Bienvenido a nuestra tienda de licores. ¿En qué puedo ayudarte hoy?",
-    "qué es un tequila": "El tequila es una bebida alcohólica destilada originaria de México, hecha a partir del agave azul. Es perfecto para cócteles o para disfrutar solo. ¿Quieres saber qué tipos tenemos?",
-    "qué tipos de tequila tienes": "Tenemos tequilas blancos, reposados, añejos y extra añejos. Entre nuestras marcas están Don Julio, Jose Cuervo, Herradura y Casa Noble. ¿Te gustaría una recomendación?",
-    "recomiéndame un tequila": "Si buscas algo suave y moderno, Don Julio 70 es una excelente opción. Si prefieres algo clásico y robusto, prueba Herradura Añejo. ¿Cuál prefieres?",
-    "qué tequila es ideal para una fiesta": "Para una fiesta, un tequila blanco como Jose Cuervo Tradicional es una gran opción, ya que se mezcla bien con cócteles. ¿Te interesa?",
-    "qué tequila es bueno para tomar solo": "Para tomar solo, te recomiendo un tequila añejo como Don Julio 1942 o Casa Noble Extra Añejo. Son suaves y tienen un sabor complejo. ¿Te gustaría saber más sobre alguno?",
-    "recomiéndame un vino tinto": "Te recomiendo un Malbec de Argentina si buscas algo intenso, o un Merlot de Francia si prefieres un sabor más suave. ¿Quieres una recomendación más específica?",
-    "qué vinos tienes disponibles": "Tenemos una selección de vinos tintos como Malbec, Cabernet Sauvignon y Merlot, así como blancos como Chardonnay y Sauvignon Blanc. ¿Buscas algo en particular?",
-    "qué cervezas tienes": "Tenemos cervezas artesanales, importadas y nacionales. Entre las artesanales están las IPA y Porter. ¿Buscas algo ligero o algo más robusto?",
-    "quiero un cóctel": "¿Te gustaría probar un margarita con tequila blanco o un mojito con ron? También puedo recomendarte un old fashioned si prefieres whisky.",
-    "qué cócteles puedo hacer con tequila": "Puedes hacer margaritas, palomas o incluso un tequila sunrise. ¿Te gustaría la receta de alguno de ellos?",
-    "gracias": "¡De nada! Si necesitas más ayuda, no dudes en pedírmelo.",
-    "adiós": "¡Gracias por tu visita! Espero verte pronto. ¡Que tengas un excelente día!",
-    "qué licores tienes": "Contamos con una amplia variedad de licores: whisky, vodka, ron, ginebra, tequila y aperitivos como Baileys o Campari. ¿Te interesa alguno en particular?",
-    "qué ron me recomiendas": "Depende de lo que busques. Si quieres algo para mezclar, te recomiendo Havana Club. Si es para disfrutar solo, prueba Ron Zacapa.",
-    "qué vodka me recomiendas": "Si buscas algo clásico, te recomiendo Absolut. Si prefieres algo premium, prueba Belvedere o Grey Goose. ¿Te interesa alguno?",
+    general: {
+        "hola": "¡Hola! Bienvenido a nuestra tienda de licores. ¿En qué puedo ayudarte hoy?",
+        "gracias": "¡De nada! ¿Hay algo más en lo que pueda ayudarte?",
+        "adiós": "¡Gracias por tu visita! Espero verte pronto. ¡Que tengas un excelente día!"
+    },
+    cervezas: {
+        "qué cervezas tienes": "Contamos con cervezas populares como Pilsener, Brahma, y Club Verde. También tenemos cervezas artesanales si buscas algo especial. ¿Te interesa alguna en particular?",
+        "recomiéndame una cerveza": "Si buscas algo tradicional, te recomiendo una Pilsener o una Brahma. Si quieres algo más fuerte, prueba una Club Verde. ¿Cuál prefieres?",
+        "tienes cervezas artesanales": "Sí, contamos con una selección de cervezas artesanales como IPA, Porter y Stout. ¿Te gustaría probar alguna de estas?",
+    },
+    guanchaca: {
+        "qué es la guanchaca": "La guanchaca es un trago fuerte y tradicional, similar al aguardiente, pero más casero. Ideal para una buena fiesta. ¿Te gustaría una recomendación?",
+        "recomiéndame una guanchaca": "¡Claro! Te recomiendo la guanchaca de Montecristi o la tradicional de Manabí. Son fuertes pero con buen sabor. ¿Te animas a probar una?",
+        "es buena la guanchaca": "Es excelente si sabes disfrutarla. Eso sí, ¡con moderación! Es ideal para reuniones con amigos o para darle un toque especial a tus tragos.",
+    },
+    vinos: {
+        "qué vinos tienes": "Tenemos una selección de vinos económicos como el famoso Vino del Tuti, y otros más sofisticados como Merlot y Malbec. ¿Te interesa alguno en particular?",
+        "recomiéndame un vino económico": "Si buscas algo económico y popular, el Vino del Tuti es una excelente opción. Ideal para reuniones o comidas casuales.",
+        "recomiéndame un vino tinto": "Te recomiendo un Malbec de Argentina para sabores intensos, o un Merlot si prefieres algo más suave. ¿Te interesa alguno?",
+    }
 };
 
+// Variable para manejar el contexto
+let context = null;
 
-// Función para obtener una respuesta predefinida
+// Función para obtener una respuesta basada en el contexto
 function getResponse(userInput) {
     const normalizedInput = userInput.toLowerCase();
-    return responses[normalizedInput] || "Lo siento, no entiendo tu pregunta. ¿Puedes intentar de otra forma?";
+
+    // Buscar respuesta en el contexto actual
+    if (context && responses[context][normalizedInput]) {
+        return responses[context][normalizedInput];
+    }
+
+    // Cambiar el contexto basado en la entrada del usuario
+    if (normalizedInput.includes("cerveza")) {
+        context = "cervezas";
+        return responses.cervezas["qué cervezas tienes"];
+    }
+    if (normalizedInput.includes("guanchaca")) {
+        context = "guanchaca";
+        return responses.guanchaca["qué es la guanchaca"];
+    }
+    if (normalizedInput.includes("vino")) {
+        context = "vinos";
+        return responses.vinos["qué vinos tienes"];
+    }
+
+    // Respuesta general
+    if (responses.general[normalizedInput]) {
+        context = null; // Reiniciar el contexto si es una respuesta general
+        return responses.general[normalizedInput];
+    }
+
+    return "Lo siento, no entiendo tu pregunta. ¿Puedes intentar de otra forma?";
 }
 
 // Manejar el reconocimiento de voz
@@ -45,7 +78,7 @@ recognition.onresult = (event) => {
     const transcript = event.results[0][0].transcript; // Texto reconocido
     addMessage(`Tú: ${transcript}`, "user"); // Mostrar el mensaje del usuario
 
-    const botResponse = getResponse(transcript); // Obtener la respuesta predefinida
+    const botResponse = getResponse(transcript); // Obtener la respuesta basada en el contexto
     addMessage(`Bot: ${botResponse}`, "bot"); // Mostrar la respuesta del bot
 };
 
